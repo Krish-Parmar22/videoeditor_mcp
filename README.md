@@ -3,25 +3,7 @@
 hi, i'm krish. i made this because i genuinely suck at video editing. like, i'll spend 2 hours trying to cut a 5-minute clip down to 15 seconds and it still looks bad. every time i open davinci resolve i feel like i'm defusing a bomb. there had to be a better way.
 
 so i built an MCP server that lets an AI agent do the editing for me. i just say "make me a highlight reel" or "cut out the boring parts" and it actually does it. in davinci resolve. for real.
-
-## how it works
-
-this is an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — the open standard that lets AI agents use tools. instead of the AI just talking to you, MCP lets it actually *do* things. in this case, the "things" are watching videos and editing them in DaVinci Resolve.
-
-the AI agent (Claude) connects to this MCP server and gets access to tools. it decides which tools to call and in what order based on what you ask. the server also renders interactive widgets (timeline viewer, video preview, VLM results) directly in the conversation — that's the MCP Apps extension.
-
-the idea is simple: connect an AI that can **see** video to an AI that can **edit** video.
-
-```
-You: "make a 15 second highlight reel with slo-mo on the best parts"
-  |
-  v
-Claude (AI agent, connected via MCP)
-  |
-  ├── calls get-resolve-state tool
-  │   → gets current project info, timeline, clips, fps
-  |
-  ├── calls analyze-video tool → hits Cumulus Labs VLM (Qwen3-VL on GPU)
+111-VL on GPU)
   │   → VLM watches the actual video and returns timestamps of best moments
   |
   ├── calls execute-resolve-script tool
