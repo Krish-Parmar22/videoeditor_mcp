@@ -1,1 +1,12 @@
-{}
+{
+  "name": "videoeditor-mcp",
+  "type": "module",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd server && npm install",
+    "build": "cd server && npm run build",
+    "start": "cd server && npm run start",
+    "dev": "cd server && npm run dev"
+  }
+}
