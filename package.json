@@ -2,11 +2,43 @@
   "name": "videoeditor-mcp",
   "type": "module",
   "version": "2.0.0",
-  "private": true,
+  "description": "AI video editing MCP App",
+  "license": "MIT",
+  "keywords": ["mcp", "server", "mcp-use"],
+  "main": "server/dist/index.js",
   "scripts": {
-    "postinstall": "cd server && npm install",
-    "build": "cd server && npm run build",
-    "start": "cd server && npm run start",
-    "dev": "cd server && npm run dev"
+    "postinstall": "cd server && npm ci --ignore-scripts && npx mcp-use generate-types || true",
+    "build": "cd server && npx mcp-use build",
+    "start": "cd server && npx mcp-use start",
+    "dev": "cd server && npx mcp-use dev",
+    "bridge": "cd server && npx tsx src/resolve-bridge-server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@openai/apps-sdk-ui": "^0.2.1",
+    "@tanstack/react-query": "^5.90.21",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mcp-use": "latest",
+    "openai": "^6.22.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router": "^7.13.0",
+    "tailwindcss": "^4.2.0",
+    "zod": "4.3.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.0",
+    "@types/node": "^25.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "overrides": {
+    "sugarss": "^5.0.1",
+    "lodash": "4.17.23"
   }
 }
