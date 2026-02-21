@@ -1,5 +1,10 @@
 import { createServer } from "node:http";
+import { readFile, stat } from "node:fs/promises";
+import path from "node:path";
 import { executeResolveScript, getResolveState } from "./resolve-executor.js";
+import { createCumulusVlmClient } from "./cumulus-vlm-client.js";
+
+const vlmClient = createCumulusVlmClient();
 
 const PORT = parseInt(process.env.BRIDGE_PORT || "3001");
 const TOKEN = process.env.BRIDGE_TOKEN || "";
@@ -38,6 +43,28 @@ const server = createServer(async (req, res) => {
       const state = await getResolveState();
       res.writeHead(200);
       res.end(JSON.stringify({ state }));
+    } else if (req.method === "POST" && req.url === "/analyze-video") {
+      const body = JSON.parse(await readBody(req));
+      const response = await vlmClient.analyzeVideo(body.videoPath, body.question);
+      res.writeHead(200);
+      res.end(JSON.stringify({ response }));
+    } else if (req.method === "GET" && req.url?.startsWith("/api/video")) {
+      // Serve video files for widget preview
+      const url = new URL(req.url, `http://localhost:${PORT}`);
+      const filePath = url.searchParams.get("path");
+      if (!filePath) { res.writeHead(400); res.end("Missing path"); return; }
+      const resolved = path.resolve(filePath);
+      const ext = path.extname(resolved).slice(1).toLowerCase();
+      const mimeMap: Record<string, string> = { mp4: "video/mp4", mov: "video/quicktime", webm: "video/webm" };
+      const mime = mimeMap[ext] || "video/mp4";
+      try {
+        const info = await stat(resolved);
+        const buf = await readFile(resolved);
+        res.writeHead(200, { "Content-Length": String(info.size), "Content-Type": mime, "Access-Control-Allow-Origin": "*" });
+        res.end(buf);
+      } catch {
+        res.writeHead(404); res.end("File not found");
+      }
     } else if (req.method === "GET" && req.url === "/health") {
       res.writeHead(200);
       res.end(JSON.stringify({ ok: true }));

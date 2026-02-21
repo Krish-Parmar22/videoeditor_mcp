@@ -88,6 +88,16 @@ const server = new MCPServer({
 
 const vlmClient = createCumulusVlmClient();
 
+// In bridge mode, VLM analysis goes through the bridge (file is on the laptop)
+const isBridgeMode = !!process.env.RESOLVE_BRIDGE_URL;
+let analyzeVideoFn: (videoPath: string, question: string) => Promise<string>;
+if (isBridgeMode) {
+  const { analyzeVideoViaBridge } = await import("./src/resolve-bridge-client.js");
+  analyzeVideoFn = analyzeVideoViaBridge;
+} else {
+  analyzeVideoFn = vlmClient.analyzeVideo;
+}
+
 server.tool(
   {
     name: "analyze-video",
@@ -119,7 +129,7 @@ server.tool(
   loggedTool("analyze-video", async ({ videoPath, question }: { videoPath: string; question: string }) => {
     try {
       const vlmStart = Date.now();
-      const response = await vlmClient.analyzeVideo(videoPath, question);
+      const response = await analyzeVideoFn(videoPath, question);
       const durationMs = Date.now() - vlmStart;
       const videoName = path.basename(videoPath);
       return widget({
@@ -171,7 +181,7 @@ server.tool(
   },
   loggedTool("execute-resolve-script", async ({ code, description }: { code: string; description?: string }) => {
     if (description) {
-      console.log(`[Resolve Script] ${description}`);
+      console.error(`[Resolve Script] ${description}`);
     }
 
     const result = await executeResolveScript(code);
@@ -215,6 +225,10 @@ server.tool(
       const parsed = JSON.parse(stateJson);
       // Pass server port so widget can construct video URLs
       parsed._serverPort = server.serverPort || PORT;
+      // In bridge mode, video files are on the laptop — use bridge URL for preview
+      if (process.env.RESOLVE_BRIDGE_URL) {
+        parsed._videoBaseUrl = process.env.RESOLVE_BRIDGE_URL;
+      }
       return widget({
         props: parsed,
         output: text(stateJson),
@@ -626,5 +640,5 @@ server.app.get("/api/video", async (c) => {
 // --- Start server ---
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-console.log(`Video Editor MCP v2 — 3 tools + 1 prompt — port ${PORT}`);
+console.error(`Video Editor MCP v2 — 3 tools + 1 prompt — port ${PORT}`);
 server.listen(PORT);

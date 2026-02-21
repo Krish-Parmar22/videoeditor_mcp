@@ -53,6 +53,7 @@ const propsSchema = z.object({
   markers: z.record(z.string(), z.any()),
   media_pool: z.array(poolClipSchema),
   _serverPort: z.number().optional(),
+  _videoBaseUrl: z.string().optional(),
 });
 
 export const widgetMetadata: WidgetMetadata = {
@@ -75,7 +76,10 @@ function formatTime(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function videoUrl(serverPort: number, filePath: string): string {
+function videoUrl(serverPort: number, filePath: string, baseUrl?: string): string {
+  if (baseUrl) {
+    return `${baseUrl}/api/video?path=${encodeURIComponent(filePath)}`;
+  }
   return `http://localhost:${serverPort}/api/video?path=${encodeURIComponent(filePath)}`;
 }
 
@@ -113,18 +117,20 @@ function VideoPreview({
   serverPort,
   fps,
   colors,
+  videoBaseUrl,
 }: {
   clip: Clip | null;
   serverPort: number;
   fps: number;
   colors: ReturnType<typeof useColors>;
+  videoBaseUrl?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
 
-  const src = clip?.file_path ? videoUrl(serverPort, clip.file_path) : null;
+  const src = clip?.file_path ? videoUrl(serverPort, clip.file_path, videoBaseUrl) : null;
 
   // Seek to clip's start time when clip changes
   useEffect(() => {
@@ -455,6 +461,7 @@ export default function TimelineViewer() {
   const safeMarkers = props.markers || {};
   const mediaPool = props.media_pool || [];
   const serverPort = props._serverPort || 3000;
+  const videoBaseUrl = props._videoBaseUrl;
 
   // Group clips by track
   const tracks = new Map<number, Clip[]>();
@@ -537,6 +544,7 @@ export default function TimelineViewer() {
             serverPort={serverPort}
             fps={fps}
             colors={colors}
+            videoBaseUrl={videoBaseUrl}
           />
         </div>
 

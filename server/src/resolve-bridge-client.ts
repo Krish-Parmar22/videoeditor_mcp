@@ -35,3 +35,12 @@ export async function getResolveState(): Promise<string> {
   const data = await bridgePost("/state");
   return data.state;
 }
+
+/** VLM analysis via bridge — the bridge reads the file locally and sends to VLM */
+export async function analyzeVideoViaBridge(
+  videoPath: string,
+  question: string
+): Promise<string> {
+  const data = await bridgePost("/analyze-video", { videoPath, question });
+  return data.response;
+}
