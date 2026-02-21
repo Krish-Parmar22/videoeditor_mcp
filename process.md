@@ -337,7 +337,7 @@ These are things you can just SAY to the agent and it will figure out the tools:
 
 ---
 
-## Recent Changes (Feb 21)
+## Recent Changes
 
 ### Fixed: `create_sub_clip` now works
 
@@ -417,3 +417,109 @@ Claude (Agent)
 | `resolve-create_sub_clip` | Adds frame segment to DaVinci timeline |
 | `resolve-add_marker` | Places colored markers |
 | `video-editing-assistant` prompt | Discoverable, returns workflow guide |
+
+---
+
+## MCP App Widgets (v2.1)
+
+### Changes
+
+Converted from text-only MCP server to an MCP App with interactive React widgets rendered inline in the conversation.
+
+**Architecture change:**
+```
+BEFORE: Tool call → returns text() → user sees nothing visual
+AFTER:  Tool call → returns widget({ props, output }) → user sees interactive React UI
+```
+
+**3 widgets added** in `server/resources/`:
+
+| Widget | Tool | What It Shows |
+|--------|------|---------------|
+| `timeline-viewer.tsx` | `get-resolve-state` | Visual timeline with clip bars (proportional width), markers as colored lines, media pool grid, clip detail on click, "Analyze with VLM" button |
+| `vlm-result.tsx` | `analyze-video` | Question/response display, "Apply Edits" / "More Detail" / "Retry" action buttons via sendFollowUpMessage |
+| `script-result.tsx` | `execute-resolve-script` | Success/failure badge, stdout in monospace, stderr in red, "Refresh Timeline" button (calls get-resolve-state via useCallTool), "Help Fix Error" button |
+
+**Key patterns used:**
+- `widget()` response helper: sends `props` to widget UI + `output` text to LLM
+- `useWidgetTheme()` for dark/light mode support
+- `sendFollowUpMessage()` for buttons that trigger new LLM turns
+- `useCallTool("get-resolve-state")` for refresh button in script-result widget
+- `McpUseProvider autoSize` wraps all widgets for auto iframe sizing
+
+**Files modified:**
+- `server/index.ts` — added `widget` config to all 3 tools, changed returns from `text()` to `widget()`
+- `server/resources/timeline-viewer.tsx` — NEW
+- `server/resources/vlm-result.tsx` — NEW
+- `server/resources/script-result.tsx` — NEW
+
+**Build:** `mcp-use build` compiles all 3 widgets successfully (3 widget bundles in dist/resources/widgets/)
+
+---
+
+## VLM Widget UX Fix + Prompt Efficiency
+
+### Problem
+Testing with skating.mp4 revealed: agent made 20 VLM calls (11+ min total), chunking video into 30s segments. Widget showed raw JSON, user couldn't understand results, buttons gave no context so agent re-analyzed.
+
+### Fixes
+1. **vlm-result.tsx** — Parses VLM JSON responses into structured segment list (time range, description, type badge, impact score). Falls back to plain text if not JSON. Buttons now include the actual findings in sendFollowUpMessage so agent doesn't re-analyze.
+2. **index.ts** — Added `durationMs` prop to analyze-video (shows "Analyzed in 33.5s"). Added "VLM Efficiency Rules" to workflow prompt: analyze full video in ONE call, max 3 VLM calls per request, don't split into segments.
+3. **Session logging** — Every tool call + output logged to `server/logs/session.jsonl` for debugging.
+
+---
+
+## Timeline Widget v2 — Video Preview + Better UI
+
+### Changes
+1. **Video serving route** — Added `/api/video?path=<filepath>` to `index.ts` via `server.app`. Streams local video files with range request support (seeking works). CORS enabled.
+2. **timeline-viewer.tsx** — Full rewrite:
+   - **Video preview** at top — `<video>` tag loads from the server route, click to play/pause, timecode overlay, auto-seeks to selected clip's start time
+   - **Timeline tracks** — improved clip bars with names and frame counts, highlight glow on selected clip
+   - **Clip detail panel** — shows start/end/duration in seconds + frames, file path, "Analyze with VLM" button
+   - **Collapsible media pool** — hidden by default, expandable
+   - **CSP configured** — `connectDomains: ["http://localhost:*"]` allows video loading
+3. **Server port passed as prop** — `get-resolve-state` adds `_serverPort` to props so widget constructs correct video URLs
+
+---
+
+## Workflow Prompt Rewrite — Stop Chaotic Agent Behavior
+
+### Problem
+Session logs showed agent making 20+ VLM calls, 8+ debug scripts, firing tools in parallel causing widgets to appear out of order. User had to scroll up and down constantly.
+
+### Fix
+Rewrote WORKFLOW_PROMPT in `server/index.ts` with:
+1. **Strict 4-phase workflow** — Understand → Plan → Execute → Verify, each with explicit rules
+2. **Sequential tool ordering** — "DO NOT fire get-resolve-state and analyze-video at the same time"
+3. **Anti-patterns section** — explicit "DO NOT" list based on observed bad behavior (no debug scripts, no re-analysis, no parallel VLM+state calls, max 2 VLM calls)
+4. **Removed "Supports concurrent calls"** from analyze-video tool description
+5. **Simplified example** — one clean highlight reel script instead of verbose multi-step walkthrough
+
+---
+
+## Production Readiness — Auth, Onboarding, Security
+
+### Security Fixes
+- **Path traversal fix** — `/api/video` now validates paths against allowed directories (~/Downloads, ~/Movies, ~/Desktop, ~/Documents, /tmp/resolve_preview)
+- **CORS fix** — removed wildcard `*`, uses request origin or localhost
+- **Range request validation** — bounds checking before buffer allocation
+- **Python blocklist** — added `eval`, `exec`, `compile`, `os.exec*`, `os.spawn*`, `importlib`, `requests`, `httpx`. Case-insensitive matching.
+- **Logs gitignored** — `logs/` added to `.gitignore`
+
+### Supabase OAuth
+- Added `oauthSupabaseProvider()` to MCPServer config (conditional — only when env var set)
+- Supabase project: `YC-MCP-Hackathon` (hipzdfjljxcxkllkpjcd)
+- Auto-handles JWT verification, `/authorize`, `/token`, `ctx.auth` in all tools
+
+### Onboarding
+- **Config module** (`server/src/config.ts`) — persists to `~/.videoeditor-mcp/config.json`, loads on startup
+- **3 new tools**: `detect-setup-status` (checks DaVinci + VLM), `test-vlm-connection`, `save-setup`
+- **Setup wizard widget** (`server/resources/setup-wizard.tsx`) — step-by-step: DaVinci status, VLM endpoint input + test button, save config
+- Config applied to env vars on startup so VLM client and executor use saved settings
+
+### New Files
+- `server/src/config.ts` — config load/save/apply
+- `server/resources/setup-wizard.tsx` — onboarding widget
+
+### Total: 4 widgets, 6 tools, 1 prompt

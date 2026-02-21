@@ -17,6 +17,7 @@ export function createCumulusVlmClient() {
   const client = new OpenAI({
     apiKey: process.env.CUMULUS_VLM_API_KEY || "EMPTY",
     baseURL: endpoint,
+    timeout: 5 * 60 * 1000, // 5 minutes — VLM video processing is slow
   });
 
   async function analyzeVideo(

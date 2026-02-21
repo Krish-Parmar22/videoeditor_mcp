@@ -24,6 +24,7 @@ coverage/
 .env.production.local
 
 # Logs
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
