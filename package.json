@@ -8,7 +8,7 @@
   "main": "server/dist/index.js",
   "scripts": {
     "postinstall": "cd server && npm ci --ignore-scripts && npx mcp-use generate-types || true",
-    "build": "cd server && npx mcp-use build",
+    "build": "cd server && npm install && npx mcp-use build",
     "start": "cd server && npx mcp-use start",
     "dev": "cd server && npx mcp-use dev",
     "bridge": "cd server && npx tsx src/resolve-bridge-server.ts"
