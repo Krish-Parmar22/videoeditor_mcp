@@ -161,7 +161,10 @@ server.tool(
       "SLO-MO: SetProperty('Speed') DOES NOT WORK. For slow motion, double the frame range at import: e.g. for 0.5x on 24 frames, use startFrame=0 endFrame=48. The extra frames play at normal speed = slo-mo effect. | " +
       "FPS: float(timeline.GetSetting('timelineFrameRate')) | " +
       "Markers: timeline.AddMarker(frame, 'Red', 'Name', 'Note', 1) | " +
-      "RULES: (1) ONE script for ALL edits. (2) No debug/explore scripts. (3) Tell user your plan first. (4) ALWAYS call get-resolve-state after this tool so the user sees the final timeline.",
+      "RULES: (1) NEVER call this without user approval first — present your plan and WAIT for the user to say go. " +
+      "(2) ONE script for ALL edits. (3) No debug/explore scripts. " +
+      "(4) ALWAYS call get-resolve-state after this tool. " +
+      "(5) NEVER call this in the same turn as analyze-video.",
     schema: z.object({
       code: z
         .string()
@@ -362,13 +365,18 @@ const WORKFLOW_PROMPT = `You are an AI video editing assistant. You have 3 tools
 3. Wait for VLM to complete before doing anything else.
 4. DO NOT fire get-resolve-state and analyze-video at the same time.
 
-### Phase 2: PLAN (no tool calls — just text)
-- Tell the user what you found: list the segments, moments, or edits you'll make.
-- Show timestamps, descriptions, and your editing plan.
-- If the edit is destructive (deleting clips, rebuilding timeline), explain what will happen.
-- Keep this brief — 3-5 bullet points, not a wall of text.
+### Phase 2: PLAN AND WAIT — MANDATORY STOP
+- Present your editing plan to the user as a short numbered list.
+- Show: what clips, timestamps, slo-mo segments, estimated total duration.
+- Then STOP. End your message. Do NOT call any tools.
+- WAIT for the user to reply with approval, feedback, or changes.
+- Only proceed to Phase 3 AFTER the user explicitly says to go ahead (e.g. "do it", "looks good", "go").
+- If the user gives feedback, adjust your plan and present it again. Wait again.
+- NEVER skip this phase. NEVER execute edits without user approval.
 
-### Phase 3: EXECUTE (one script)
+### Phase 3: EXECUTE (only after user says go)
+- The user MUST have approved your plan in the previous message before you call any edit tools.
+- If you are unsure whether the user approved, ASK. Do not assume.
 - Write ONE execute-resolve-script that does ALL the edits in a single call.
 - The API reference below has every method you need. Do NOT run exploratory scripts.
 - If a script fails, fix the code and retry ONCE. Do not run debug/explore scripts.

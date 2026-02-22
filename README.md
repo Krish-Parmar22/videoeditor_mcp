@@ -3,7 +3,7 @@
 hi, i'm krish. i made this because i genuinely suck at video editing. like, i'll spend 2 hours trying to cut a 5-minute clip down to 15 seconds and it still looks bad. every time i open davinci resolve i feel like i'm defusing a bomb. there had to be a better way.
 
 so i built an MCP server that lets an AI agent do the editing for me. i just say "make me a highlight reel" or "cut out the boring parts" and it actually does it. in davinci resolve. for real.
-111-VL on GPU)
+1111-VL on GPU)
   │   → VLM watches the actual video and returns timestamps of best moments
   |
   ├── calls execute-resolve-script tool

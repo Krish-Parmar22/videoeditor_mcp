@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   McpUseProvider,
   useWidget,
@@ -52,6 +53,7 @@ export default function ScriptResult() {
   const { callTool: refreshState, isPending: isRefreshing } =
     useCallTool("get-resolve-state");
   const colors = useColors();
+  const [userMessage, setUserMessage] = useState("");
 
   if (isPending) {
     return (
@@ -246,6 +248,59 @@ export default function ScriptResult() {
               Help Fix Error
             </button>
           )}
+        </div>
+
+        {/* Custom feedback input */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 12,
+          }}
+        >
+          <input
+            type="text"
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && userMessage.trim()) {
+                sendFollowUpMessage(userMessage.trim());
+                setUserMessage("");
+              }
+            }}
+            placeholder="Give feedback or ask for changes..."
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              fontSize: 13,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 6,
+              backgroundColor: colors.codeBg,
+              color: colors.text,
+              outline: "none",
+            }}
+          />
+          <button
+            onClick={() => {
+              if (userMessage.trim()) {
+                sendFollowUpMessage(userMessage.trim());
+                setUserMessage("");
+              }
+            }}
+            disabled={!userMessage.trim()}
+            style={{
+              padding: "8px 16px",
+              fontSize: 12,
+              fontWeight: 500,
+              border: "none",
+              borderRadius: 6,
+              backgroundColor: userMessage.trim() ? colors.accent : colors.border,
+              color: "#fff",
+              cursor: userMessage.trim() ? "pointer" : "default",
+            }}
+          >
+            Send
+          </button>
         </div>
       </div>
     </McpUseProvider>

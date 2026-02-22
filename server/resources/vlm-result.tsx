@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   McpUseProvider,
   useWidget,
@@ -246,6 +247,7 @@ function SegmentList({
 export default function VlmResult() {
   const { props, isPending, sendFollowUpMessage } = useWidget<Props>();
   const colors = useColors();
+  const [userMessage, setUserMessage] = useState("");
 
   if (isPending) {
     return (
@@ -377,7 +379,7 @@ export default function VlmResult() {
           <button
             onClick={() =>
               sendFollowUpMessage(
-                `Apply these VLM findings for "${videoName}" to the timeline:\n${findingsSummary}\n\nUse execute-resolve-script to make the edits. Do NOT call analyze-video again — use the data above.`
+                `Here are the VLM findings for "${videoName}":\n${findingsSummary}\n\nShow me your editing plan based on these findings. List the clips, timestamps, and effects you'd use. Do NOT execute yet — wait for my approval.`
               )
             }
             style={{
@@ -391,7 +393,7 @@ export default function VlmResult() {
               cursor: "pointer",
             }}
           >
-            Apply Edits
+            Plan Edits
           </button>
           <button
             onClick={() =>
@@ -430,6 +432,59 @@ export default function VlmResult() {
             }}
           >
             Retry
+          </button>
+        </div>
+
+        {/* Custom feedback input */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 12,
+          }}
+        >
+          <input
+            type="text"
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && userMessage.trim()) {
+                sendFollowUpMessage(userMessage.trim());
+                setUserMessage("");
+              }
+            }}
+            placeholder="Tell the agent what to do with these results..."
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              fontSize: 13,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 6,
+              backgroundColor: colors.codeBg,
+              color: colors.text,
+              outline: "none",
+            }}
+          />
+          <button
+            onClick={() => {
+              if (userMessage.trim()) {
+                sendFollowUpMessage(userMessage.trim());
+                setUserMessage("");
+              }
+            }}
+            disabled={!userMessage.trim()}
+            style={{
+              padding: "8px 16px",
+              fontSize: 12,
+              fontWeight: 500,
+              border: "none",
+              borderRadius: 6,
+              backgroundColor: userMessage.trim() ? colors.accent : colors.border,
+              color: "#fff",
+              cursor: userMessage.trim() ? "pointer" : "default",
+            }}
+          >
+            Send
           </button>
         </div>
       </div>
