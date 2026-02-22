@@ -501,6 +501,24 @@ export default function TimelineViewer() {
             <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>
               {props.project || "No Project"}
             </h2>
+            <button
+              onClick={() => runScript({
+                code: 'resolve.OpenPage("edit")\nprint("Opened edit page")',
+                description: "Open DaVinci Resolve edit page",
+              })}
+              style={{
+                padding: "4px 12px",
+                fontSize: 11,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 6,
+                backgroundColor: colors.accent,
+                color: "#fff",
+                cursor: "pointer",
+                marginLeft: "auto",
+              }}
+            >
+              Open in DaVinci
+            </button>
           </div>
           {/* Timeline switcher — always show if there are timelines */}
           {allTimelines.length > 0 && (
