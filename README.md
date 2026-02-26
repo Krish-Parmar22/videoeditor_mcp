@@ -4,8 +4,6 @@ Built by Krish Parmar. Won **2nd place** at the [MCP Apps Hackathon](https://lu.
 
 **Powered by**
 
-[![Cumulus Labs](./cumulus-logo.svg)](https://cumuluslabs.ai)
-
 **[Cumulus Labs](https://cumuluslabs.io) VLM (Qwen3-VL-32B)** — GPU-hosted vision intelligence that watches your video and understands what's happening, frame by frame.
 
 An MCP App that lets an AI agent edit video in DaVinci Resolve. Just say "make me a highlight reel" or "cut out the boring parts" and it actually does it.

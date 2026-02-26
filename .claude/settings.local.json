@@ -33,7 +33,15 @@
       "WebFetch(domain:localhost)",
       "Bash(head:*)",
       "Bash(file:*)",
-      "Bash(cd /Users/krishparmar/GitHub/videoeditor_mcp && git init 2>&1 && git add -A 2>&1 && git commit -m \"checkpoint: 124-tool proxy architecture \\(before python executor rewrite\\)\" 2>&1)"
+      "Bash(cd /Users/krishparmar/GitHub/videoeditor_mcp && git init 2>&1 && git add -A 2>&1 && git commit -m \"checkpoint: 124-tool proxy architecture \\(before python executor rewrite\\)\" 2>&1)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:electron-rotoscope.github.io)",
+      "WebFetch(domain:modelcontextprotocol.github.io)",
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(cat /Users/krishparmar/GitHub/videoeditor_mcp/server/logs/session.jsonl | python3 -c \"\nimport sys, json\nentries = []\nfor line in sys.stdin:\n    entries.append\\(json.loads\\(line.strip\\(\\)\\)\\)\n\n# Show the flow of calls and results in order\nfor d in entries:\n    ts = d['ts'].split\\('T'\\)[1][:8]\n    tool = d.get\\('tool','?'\\)\n    typ = d['type']\n    if typ == 'tool_call':\n        args = d.get\\('args',{}\\)\n        q = args.get\\('question',''\\)[:60] if 'question' in args else ''\n        desc = args.get\\('description',''\\)[:60] if 'description' in args else ''\n        label = q or desc or ''\n        print\\(f'{ts} >>> CALL  {tool:30s}  {label}'\\)\n    elif typ == 'tool_result':\n        ms = d.get\\('durationMs',0\\)\n        err = d.get\\('isError', False\\)\n        status = 'ERR' if err else 'OK'\n        print\\(f'{ts} <<< DONE  {tool:30s}  {ms:>6}ms  {status}'\\)\n    elif typ == 'tool_error':\n        print\\(f'{ts} !!! ERR   {tool:30s}  {d.get\\(\\\\\"error\\\\\",\\\\\"\\\\\"\\)[:60]}'\\)\n\" 2>&1)",
+      "Bash(cat /Users/krishparmar/GitHub/videoeditor_mcp/server/logs/session.jsonl | python3 -c \"\nimport sys, json\nentries = []\nfor line in sys.stdin:\n    entries.append\\(json.loads\\(line.strip\\(\\)\\)\\)\n\n# Only show recent entries \\(after the prompt rewrite\\)\nfor d in entries:\n    ts = d['ts']\n    if ts < '2026-02-21T20:45': continue\n    t = ts.split\\('T'\\)[1][:8]\n    tool = d.get\\('tool','?'\\)\n    typ = d['type']\n    if typ == 'tool_call':\n        args = d.get\\('args',{}\\)\n        desc = args.get\\('description',''\\)[:70]\n        q = args.get\\('question',''\\)[:70]\n        label = desc or q or ''\n        print\\(f'{t} >>> {tool:30s}  {label}'\\)\n    elif typ == 'tool_result':\n        ms = d.get\\('durationMs',0\\)\n        err = d.get\\('isError', False\\)\n        out = \\(d.get\\('output'\\) or ''\\)[:80]\n        status = 'ERR' if err else 'OK'\n        print\\(f'{t} <<< {tool:30s}  {ms:>6}ms  {status}  {out}'\\)\n    elif typ == 'tool_error':\n        print\\(f'{t} !!! {tool:30s}  {d.get\\(\\\\\"error\\\\\",\\\\\"\\\\\"\\)[:80]}'\\)\n\" 2>&1)",
+      "Bash(cd /Users/krishparmar/GitHub/videoeditor_mcp/server && npx mcp-use deploy --help 2>&1)"
     ]
   }
 }
