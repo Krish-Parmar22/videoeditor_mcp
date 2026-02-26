@@ -1,6 +1,6 @@
 # Video Editor MCP
 
-Built by Krish Parmar. Won **2nd place** at the [MCP Apps Hackathon](https://lu.ma/mcp-apps-hackathon) by Manufact (YC S25) at Y Combinator.
+Built by Krish Parmar. Won **2nd place** at the [MCP Apps Hackathon](https://events.ycombinator.com/manufact-hackathon26) by Manufact (YC S25) at Y Combinator.
 
 **Powered by**
 
